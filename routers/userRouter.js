@@ -2,28 +2,59 @@ let express = require("express")
 let userModel = require("../models/user")
 let router = express.Router();
 let bcrypt = require('bcrypt')
-router.get("/" , async (req,res)=>{
-    try{
+let jwt = require('jsonwebtoken');
+
+router.get("/", async (req, res) => {
+    try {
         let users = await userModel.find();
         res.json(users)
-    }   
-    catch(err){
+    }
+    catch (err) {
         res.json(err)
     }
 })
 
-router.post("/sign-in" , async(req,res)=>{
-    try{
+router.post("/sign-in", async (req, res) => {
+    try {
         let name = req.body.name
         let password = await bcrypt.hash(req.body.password, 5);
-        let user = await userModel.create({name,password})
+        let user = await userModel.create({ name, password })
         res.json({
-            "message" : "User registered successfully",
+            "message": "User registered successfully",
             user
         })
     }
-    catch(err){
+    catch (err) {
         res.json(err)
     }
+})
+
+router.post("/login", async (req, res) => {
+    try {
+        let name = req.body.name
+        let password = req.body.password
+        let user = await userModel.findOne({name});
+        if(!user){
+            res.json({
+                message : "Username is incorrect"
+            })
+        }
+        let isMatch = await bcrypt.compare(password, user.password)
+        if(!isMatch){
+            res.json({
+                message : "password is incorrect"
+            })
+        }
+        let token = jwt.sign({name, userId : user._id}, process.env.JWT_TOKEN, {expiresIn : "1h"})
+        res.json({
+            message : "Logged in successfully",
+            user,
+            token
+        })
+    }
+    catch (err) {
+        res.json(err)
+    }
+
 })
 module.exports = router;
