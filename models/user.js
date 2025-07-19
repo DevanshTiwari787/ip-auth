@@ -1,10 +1,10 @@
 let mongoose = require("mongoose")
 let Schema = mongoose.Schema;
-let ObjectId = Schema.ObjectId;
+let ObjectId = mongoose.ObjectId;
 
 let user = new Schema({
     name : {type: String, unique : true},
-    password : {type: String},
+    password : {type: String}
 })
 
 
